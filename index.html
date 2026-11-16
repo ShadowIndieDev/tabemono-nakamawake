@@ -6,7 +6,7 @@
 <meta name="robots" content="noindex,nofollow,noarchive">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src https: data:; connect-src 'self' https://script.google.com https://script.googleusercontent.com; object-src 'none'; base-uri 'none'; form-action 'none'">
 <title>たべもの なかまわけ げーむ</title>
-<link rel="stylesheet" href="style.css?v=3.0.0">
+<link rel="stylesheet" href="style.css?v=3.1.0">
 </head>
 <body>
 
@@ -104,6 +104,21 @@
         <button class="add-btn btn-blue" id="save-icons">イラストを ほぞんする</button>
     </div>
 
+    <hr>
+
+    <h3>データのきょうゆう（共有コード）</h3>
+    <div class="setting-form share-box">
+        <p class="note">この曜日の こんだてを、チャット・メールなどに貼り付けて送れる共有コードにします。</p>
+        <button class="add-btn btn-purple" id="share-make">共有コードを作る</button>
+        <textarea id="share-code-output" readonly placeholder="ここに共有コードが表示されます。"></textarea>
+        <button class="add-btn btn-darkpurple" id="share-copy">共有コードをコピー</button>
+        <p id="share-status" class="note"></p>
+
+        <p class="note share-gap">送られてきた共有コードを下に貼り付けると、この曜日に読み込みます（上書き）。</p>
+        <textarea id="import-data-text" placeholder="ここに共有コードを貼り付けてください"></textarea>
+        <button class="add-btn btn-import" id="share-import">データを よみこむ（上書き）</button>
+    </div>
+
     <details class="api-box">
         <summary>保存先の設定（はじめの1回だけ）</summary>
         <p class="note">ふだんは触りません。保存先のURLがこのページに入っていない時だけ、Apps Script のウェブアプリのURLを入れます。</p>
@@ -112,7 +127,7 @@
     </details>
 </div>
 
-<script src="config.js?v=3.0.0"></script>
-<script src="app.js?v=3.0.0"></script>
+<script src="config.js?v=3.1.0"></script>
+<script src="app.js?v=3.1.0"></script>
 </body>
 </html>

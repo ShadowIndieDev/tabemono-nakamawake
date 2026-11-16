@@ -90,3 +90,7 @@ body {
 hr { border: 2px solid #dfe6e9; margin: 30px 0; }
 .api-box { text-align: left; margin: 20px 0 40px; background: #f1f2f6; padding: 12px 16px; border-radius: 10px; }
 .api-box summary { cursor: pointer; font-weight: bold; }
+.share-box { background: #f5f3ff; border: 2px solid #a29bfe; }
+.share-box textarea { width: 100%; box-sizing: border-box; height: 90px; margin-top: 10px; font-family: monospace; font-size: .95rem; padding: 8px; border-radius: 5px; border: 1px solid #ccc; resize: vertical; }
+.btn-purple { background-color: #6c5ce7; } .btn-darkpurple { background-color: #4834d4; margin-top: 5px; } .btn-import { background-color: #d63031; }
+.share-gap { margin-top: 24px; }

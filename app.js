@@ -124,6 +124,7 @@ function renderDayTabs() {
 function selectDay(d) {
     if (saving || d === day) return;
     day = d; store.set(STORE.day, d);
+    clearShare();
     renderDayTabs(); renderSettings(); initGame();
 }
 function switchTab(t) {
@@ -270,6 +271,62 @@ $('password-check').onclick = async () => {
         else { st.textContent = ERR[r.error] || 'たしかめられませんでした。'; st.className = 'note ng'; }
     } catch (e) { st.textContent = e.message === 'no_api' ? ERR.no_api : '保存先に つながりません。'; st.className = 'note ng'; }
 };
+// ---------- 共有コード（2.0.3 と同じ形：FG1＝圧縮、FG0＝圧縮なし。前の版のコードも読める） ----------
+async function compressText(text) {
+    if (!window.CompressionStream) throw new Error('unsupported');
+    const buf = await new Response(new Blob([text]).stream().pipeThrough(new CompressionStream('deflate'))).arrayBuffer();
+    const bytes = new Uint8Array(buf); let bin = '';
+    for (let i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
+    return btoa(bin);
+}
+async function decompressText(b64) {
+    if (!window.DecompressionStream) throw new Error('unsupported');
+    const bytes = Uint8Array.from(atob(b64), c => c.charCodeAt(0));
+    return new Response(new Blob([bytes]).stream().pipeThrough(new DecompressionStream('deflate'))).text();
+}
+const legacyEncode = obj => btoa(unescape(encodeURIComponent(JSON.stringify(obj))));
+const legacyDecode = s => JSON.parse(decodeURIComponent(escape(atob(s))));
+async function decodeShare(text) {
+    text = text.trim();
+    const m = text.match(/FG[01]:[A-Za-z0-9+/=_-]+/); if (m) text = m[0];
+    try { const p = new URL(text).searchParams.get('data'); if (p) text = p; } catch { /* URLでなければそのまま */ }
+    if (text.startsWith('FG1:')) return JSON.parse(await decompressText(text.slice(4)));
+    if (text.startsWith('z:')) return JSON.parse(await decompressText(text.slice(2)));
+    if (text.startsWith('FG0:')) return legacyDecode(text.slice(4));
+    return legacyDecode(text);
+}
+$('share-make').onclick = async () => {
+    const target = day, d = current();
+    const obj = { foods: d.foods, icons: d.icons || {} };
+    let code;
+    try { code = 'FG1:' + await compressText(JSON.stringify(obj)); } catch { code = 'FG0:' + legacyEncode(obj); }
+    if (target !== day) return;
+    $('share-code-output').value = code;
+    try { await navigator.clipboard.writeText(code); } catch { /* コピーできない環境でも表示はする */ }
+    $('share-status').textContent = `${dayName()}の共有コードを作りました（${code.length.toLocaleString()}文字）。`;
+};
+$('share-copy').onclick = async () => {
+    const code = $('share-code-output').value.trim();
+    if (!code) { alert('先に「共有コードを作る」を押してください。'); return; }
+    try { await navigator.clipboard.writeText(code); alert('共有コードをコピーしました！チャットなどに貼り付けて送れます。'); }
+    catch { $('share-code-output').focus(); $('share-code-output').select(); alert('自動コピーできませんでした。選択された文字をコピーしてください。'); }
+};
+$('share-import').onclick = async () => {
+    const text = $('import-data-text').value.trim();
+    if (!text) { alert('共有コードを貼り付けてください。'); return; }
+    let obj;
+    try { obj = await decodeShare(text); if (!obj || !Array.isArray(obj.foods)) throw new Error('bad'); }
+    catch { alert('共有コードを読めませんでした。コピーした文字が途中で切れている可能性があります。'); return; }
+    if (!confirm(`${dayName()}の こんだては、共有コードの内容で上書きされます。よろしいですか？`)) return;
+    const foods = obj.foods.map(f => ({ name: String(f.name || ''), url: String(f.url || ''), color: f.color, isActive: f.isActive !== false }));
+    const dropped = foods.filter(f => f.url && !safeUrl(f.url)).length;
+    if (await saveDay(d => { d.foods = foods; d.icons = obj.icons || {}; })) {
+        $('import-data-text').value = '';
+        alert('データを読み込みました！' + (dropped ? `\n（https で始まらない画像のURL ${dropped}件は、使えないため外しました）` : ''));
+    }
+};
+const clearShare = () => { $('share-code-output').value = ''; $('share-status').textContent = ''; };
+
 $('api-url').value = store.get(STORE.api) || window.QUIZ_API_URL || '';
 $('api-save').onclick = () => {
     const v = $('api-url').value.trim();
