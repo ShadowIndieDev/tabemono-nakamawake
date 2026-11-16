@@ -6,7 +6,7 @@
 <meta name="robots" content="noindex,nofollow,noarchive">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src https: data:; connect-src 'self' https://script.google.com https://script.googleusercontent.com; object-src 'none'; base-uri 'none'; form-action 'none'">
 <title>たべもの なかまわけ げーむ</title>
-<link rel="stylesheet" href="style.css?v=3.1.0">
+<link rel="stylesheet" href="style.css?v=3.2.0">
 </head>
 <body>
 
@@ -119,15 +119,18 @@
         <button class="add-btn btn-import" id="share-import">データを よみこむ（上書き）</button>
     </div>
 
-    <details class="api-box">
+    <details class="api-box" id="api-box">
         <summary>保存先の設定（はじめの1回だけ）</summary>
-        <p class="note">ふだんは触りません。保存先のURLがこのページに入っていない時だけ、Apps Script のウェブアプリのURLを入れます。</p>
+        <p class="note">保存先のURLがこのページに入っていない時だけ、Apps Script のウェブアプリのURLを入れます。</p>
         <input type="text" id="api-url" placeholder="https://script.google.com/macros/s/…/exec">
         <button class="add-btn btn-blue" id="api-save">この端末で使う</button>
+        <p class="note share-gap">ほかの端末には、下の「保存先つきのURL」を送ります。そのURLを開くだけで、その端末でも同じクイズが出ます（設定は要りません）。</p>
+        <input type="text" id="open-link" readonly placeholder="保存先を入れると、ここにURLが出ます">
+        <button class="add-btn btn-purple" id="open-link-copy">保存先つきのURLをコピー</button>
     </details>
 </div>
 
-<script src="config.js?v=3.1.0"></script>
-<script src="app.js?v=3.1.0"></script>
+<script src="config.js?v=3.2.0"></script>
+<script src="app.js?v=3.2.0"></script>
 </body>
 </html>

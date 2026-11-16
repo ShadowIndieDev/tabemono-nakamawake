@@ -25,6 +25,10 @@ function todayKey() { const w = new Date().getDay(); return w >= 1 && w <= 5 ? D
 let day = todayKey();
 let tab = 'game';
 let saving = false;
+// 学校のGoogleアカウント（Workspace）では …/a/macros/<ドメイン>/s/…/exec の形になる。
+const validApi = v => /^https:\/\/script\.google\.com\/(a\/macros\/[\w.-]+|macros)\/s\/[\w-]+\/exec$/.test(v) || /^http:\/\/127\.0\.0\.1:\d+\/api$/.test(v);
+// 「保存先つきのURL」（?api=…）で開いた端末は、その保存先を覚えてアドレスから消す。
+(() => { try { const p = new URLSearchParams(location.search).get('api'); if (p && validApi(p.trim())) { store.set(STORE.api, p.trim()); history.replaceState(null, '', location.pathname); } } catch { /* 無視 */ } })();
 const apiUrl = () => (window.QUIZ_API_URL || store.get(STORE.api) || '').trim();
 const safeUrl = u => /^https:\/\//i.test(String(u || '').trim()) ? String(u).trim() : '';
 
@@ -55,7 +59,7 @@ async function loadWeek(quiet = false) {
         setStatus('');
         return true;
     } catch {
-        setStatus('保存先に つながりません。前に よみこんだ クイズで あそべます。', true);
+        setStatus('保存先に つながりません（ネットワーク、または保存先の公開が「全員」になっていない）。前に よみこんだ クイズで あそべます。', true);
         return false;
     }
 }
@@ -327,13 +331,26 @@ $('share-import').onclick = async () => {
 };
 const clearShare = () => { $('share-code-output').value = ''; $('share-status').textContent = ''; };
 
+function updateOpenLink() {
+    const u = apiUrl();
+    $('open-link').value = u ? location.origin + location.pathname + '?api=' + encodeURIComponent(u) : '';
+    $('api-box').open = !u;
+}
 $('api-url').value = store.get(STORE.api) || window.QUIZ_API_URL || '';
 $('api-save').onclick = () => {
     const v = $('api-url').value.trim();
-    if (v && !/^https:\/\/script\.google\.com\/macros\/s\/[\w-]+\/exec$/.test(v) && !/^http:\/\/127\.0\.0\.1:\d+\/api$/.test(v)) { alert('Apps Script のウェブアプリのURL（https://script.google.com/macros/s/…/exec）を入れてください。'); return; }
+    if (v && !validApi(v)) { alert('Apps Script のウェブアプリのURL（https://script.google.com/…/exec）を入れてください。'); return; }
     store.set(STORE.api, v);
+    updateOpenLink();
     loadWeek().then(() => { renderSettings(); initGame(); });
 };
+$('open-link-copy').onclick = async () => {
+    const link = $('open-link').value;
+    if (!link) { alert('先に保存先のURLを入れてください。'); return; }
+    try { await navigator.clipboard.writeText(link); alert('保存先つきのURLをコピーしました。ほかの端末で開いてください。'); }
+    catch { $('open-link').focus(); $('open-link').select(); alert('自動コピーできませんでした。選択された文字をコピーしてください。'); }
+};
+updateOpenLink();
 
 window.addEventListener('keydown', e => {
     if (tab !== 'game' || e.target?.closest?.('input, select, textarea')) return;
