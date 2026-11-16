@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex,nofollow,noarchive">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src https: data:; connect-src 'self' https://script.google.com https://script.googleusercontent.com; object-src 'none'; base-uri 'none'; form-action 'none'">
+<title>たべもの なかまわけ げーむ</title>
+<link rel="stylesheet" href="style.css?v=3.0.0">
+</head>
+<body>
+
+<div class="tabs">
+    <div class="day-tabs" id="day-tabs" role="tablist" aria-label="ようび"></div>
+    <div class="mode-tabs">
+        <button class="tab-button active" id="tab-game" data-tab="game">あそぶ</button>
+        <button class="tab-button" id="tab-settings" data-tab="settings">せってい</button>
+    </div>
+</div>
+<div id="sync-status" class="sync-status" role="status"></div>
+
+<div id="game" class="content active">
+    <div id="play-screen">
+        <div id="food-name-display">よみこみ中…</div>
+        <div id="food-display">
+            <img id="food-image" alt="たべもの" hidden>
+        </div>
+
+        <div class="button-container" id="button-container">
+            <button class="judge-btn btn-red" data-color="red">
+                <img id="icon-img-red" class="button-icon" alt="あかのイラスト">
+                <div>あか</div>
+                <div class="role-hint">（からだをつくる）</div>
+                <span class="key-hint">[Enter]キー</span>
+            </button>
+            <button class="judge-btn btn-yellow" data-color="yellow">
+                <img id="icon-img-yellow" class="button-icon" alt="きいろのイラスト">
+                <div>きいろ</div>
+                <div class="role-hint">（ちからをくれる）</div>
+                <span class="key-hint">[Space]キー</span>
+            </button>
+            <button class="judge-btn btn-green" data-color="green">
+                <img id="icon-img-green" class="button-icon" alt="みどりのイラスト">
+                <div>みどり</div>
+                <div class="role-hint">（からだをまもる）</div>
+                <span class="key-hint">[Shift]キー</span>
+            </button>
+        </div>
+
+        <div id="message-area"></div>
+        <button id="next-btn">つぎへ！</button>
+        <button id="back-btn" class="back-btn" disabled>１つもどる</button>
+    </div>
+
+    <div id="finish-screen" hidden>
+        <div class="finish-message">すごいね！<br>ぜんもんせいかい！🎉</div>
+        <div class="finish-submessage">みんなで たのしく<br>いただきます！🍽️</div>
+        <button class="replay-btn" id="replay-btn">さいしょから プレイ</button>
+        <div class="key-hint finish-key">(なにか キーをおしても はじまるよ)</div>
+    </div>
+</div>
+
+<div id="settings" class="content">
+    <h2 id="settings-title">月曜日の クイズ</h2>
+
+    <div class="setting-form teacher-box">
+        <span class="setting-label">先生の あいことば</span>
+        <p class="note">登録・変更には、あいことばが要ります。この端末に覚えておきます。</p>
+        <div class="row">
+            <input type="password" id="teacher-password" autocomplete="off" placeholder="あいことば">
+            <button class="action-btn btn-updown" id="password-check">たしかめる</button>
+        </div>
+        <p id="password-status" class="note"></p>
+    </div>
+
+    <h3>こんだて（たべもの）を ついか</h3>
+    <div class="setting-form">
+        <span class="setting-label">なまえ:</span>
+        <input type="text" id="new-name" maxlength="40" placeholder="例: とまと">
+        <span class="setting-label">画像のURL（https://〜）:</span>
+        <input type="text" id="new-url" placeholder="例: https://...">
+        <span class="setting-label">グループ:</span>
+        <select id="new-color">
+            <option value="red">あか (体をつくる)</option>
+            <option value="yellow">きいろ (力をくれる)</option>
+            <option value="green">みどり (体を守る)</option>
+        </select>
+        <button class="add-btn" id="add-food">ついかする</button>
+    </div>
+
+    <h3>とうろくリスト（チェックを外すと出題されません）</h3>
+    <div id="food-list"></div>
+
+    <hr>
+
+    <h3>ボタンのイラスト（この曜日）</h3>
+    <div class="setting-form">
+        <span class="setting-label label-red">あかのイラストURL:</span>
+        <input type="text" id="setting-icon-red" placeholder="画像のURL（空なら 🥩）">
+        <span class="setting-label label-yellow">きいろのイラストURL:</span>
+        <input type="text" id="setting-icon-yellow" placeholder="画像のURL（空なら 🍙）">
+        <span class="setting-label label-green">みどりのイラストURL:</span>
+        <input type="text" id="setting-icon-green" placeholder="画像のURL（空なら 🥦）">
+        <button class="add-btn btn-blue" id="save-icons">イラストを ほぞんする</button>
+    </div>
+
+    <details class="api-box">
+        <summary>保存先の設定（はじめの1回だけ）</summary>
+        <p class="note">ふだんは触りません。保存先のURLがこのページに入っていない時だけ、Apps Script のウェブアプリのURLを入れます。</p>
+        <input type="text" id="api-url" placeholder="https://script.google.com/macros/s/…/exec">
+        <button class="add-btn btn-blue" id="api-save">この端末で使う</button>
+    </details>
+</div>
+
+<script src="config.js?v=3.0.0"></script>
+<script src="app.js?v=3.0.0"></script>
+</body>
+</html>
