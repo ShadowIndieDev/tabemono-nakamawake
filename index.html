@@ -6,7 +6,7 @@
 <meta name="robots" content="noindex,nofollow,noarchive">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src https: data:; connect-src 'self' https://script.google.com https://script.googleusercontent.com; object-src 'none'; base-uri 'none'; form-action 'none'">
 <title>たべもの なかまわけ げーむ</title>
-<link rel="stylesheet" href="style.css?v=3.2.0">
+<link rel="stylesheet" href="style.css?v=3.3.0">
 </head>
 <body>
 
@@ -14,7 +14,7 @@
     <div class="day-tabs" id="day-tabs" role="tablist" aria-label="ようび"></div>
     <div class="mode-tabs">
         <button class="tab-button active" id="tab-game" data-tab="game">あそぶ</button>
-        <button class="tab-button" id="tab-settings" data-tab="settings">せってい</button>
+        <button class="tab-button" id="tab-settings" data-tab="settings">設定</button>
     </div>
 </div>
 <div id="sync-status" class="sync-status" role="status"></div>
@@ -61,54 +61,45 @@
 </div>
 
 <div id="settings" class="content">
-    <h2 id="settings-title">月曜日の クイズ</h2>
+    <h2 id="settings-title">月曜日のクイズ</h2>
 
-    <div class="setting-form teacher-box">
-        <span class="setting-label">先生の あいことば</span>
-        <p class="note">登録・変更には、あいことばが要ります。この端末に覚えておきます。</p>
-        <div class="row">
-            <input type="password" id="teacher-password" autocomplete="off" placeholder="あいことば">
-            <button class="action-btn btn-updown" id="password-check">たしかめる</button>
-        </div>
-        <p id="password-status" class="note"></p>
-    </div>
 
-    <h3>こんだて（たべもの）を ついか</h3>
+    <h3>献立（食べ物）を追加</h3>
     <div class="setting-form">
-        <span class="setting-label">なまえ:</span>
-        <input type="text" id="new-name" maxlength="40" placeholder="例: とまと">
+        <span class="setting-label">名前:</span>
+        <input type="text" id="new-name" maxlength="40" placeholder="例: トマト（画面には、このとおりに出ます）">
         <span class="setting-label">画像のURL（https://〜）:</span>
         <input type="text" id="new-url" placeholder="例: https://...">
         <span class="setting-label">グループ:</span>
         <select id="new-color">
-            <option value="red">あか (体をつくる)</option>
-            <option value="yellow">きいろ (力をくれる)</option>
-            <option value="green">みどり (体を守る)</option>
+            <option value="red">赤（体をつくる）</option>
+            <option value="yellow">黄（力をくれる）</option>
+            <option value="green">緑（体を守る）</option>
         </select>
-        <button class="add-btn" id="add-food">ついかする</button>
+        <button class="add-btn" id="add-food">追加する</button>
     </div>
 
-    <h3>とうろくリスト（チェックを外すと出題されません）</h3>
+    <h3>登録リスト（チェックを外すと出題されません）</h3>
     <div id="food-list"></div>
 
     <hr>
 
     <h3>ボタンのイラスト（この曜日）</h3>
     <div class="setting-form">
-        <span class="setting-label label-red">あかのイラストURL:</span>
+        <span class="setting-label label-red">赤のイラストURL:</span>
         <input type="text" id="setting-icon-red" placeholder="画像のURL（空なら 🥩）">
-        <span class="setting-label label-yellow">きいろのイラストURL:</span>
+        <span class="setting-label label-yellow">黄のイラストURL:</span>
         <input type="text" id="setting-icon-yellow" placeholder="画像のURL（空なら 🍙）">
-        <span class="setting-label label-green">みどりのイラストURL:</span>
+        <span class="setting-label label-green">緑のイラストURL:</span>
         <input type="text" id="setting-icon-green" placeholder="画像のURL（空なら 🥦）">
-        <button class="add-btn btn-blue" id="save-icons">イラストを ほぞんする</button>
+        <button class="add-btn btn-blue" id="save-icons">イラストを保存する</button>
     </div>
 
     <hr>
 
-    <h3>データのきょうゆう（共有コード）</h3>
+    <h3>データの共有（共有コード）</h3>
     <div class="setting-form share-box">
-        <p class="note">この曜日の こんだてを、チャット・メールなどに貼り付けて送れる共有コードにします。</p>
+        <p class="note">この曜日の献立を、チャット・メールなどに貼り付けて送れる共有コードにします。</p>
         <button class="add-btn btn-purple" id="share-make">共有コードを作る</button>
         <textarea id="share-code-output" readonly placeholder="ここに共有コードが表示されます。"></textarea>
         <button class="add-btn btn-darkpurple" id="share-copy">共有コードをコピー</button>
@@ -116,7 +107,7 @@
 
         <p class="note share-gap">送られてきた共有コードを下に貼り付けると、この曜日に読み込みます（上書き）。</p>
         <textarea id="import-data-text" placeholder="ここに共有コードを貼り付けてください"></textarea>
-        <button class="add-btn btn-import" id="share-import">データを よみこむ（上書き）</button>
+        <button class="add-btn btn-import" id="share-import">データを読み込む（上書き）</button>
     </div>
 
     <details class="api-box" id="api-box">
@@ -124,13 +115,13 @@
         <p class="note">保存先のURLがこのページに入っていない時だけ、Apps Script のウェブアプリのURLを入れます。</p>
         <input type="text" id="api-url" placeholder="https://script.google.com/macros/s/…/exec">
         <button class="add-btn btn-blue" id="api-save">この端末で使う</button>
-        <p class="note share-gap">ほかの端末には、下の「保存先つきのURL」を送ります。そのURLを開くだけで、その端末でも同じクイズが出ます（設定は要りません）。</p>
+        <p class="note share-gap">他の端末には、下の「保存先つきのURL」を送ります。そのURLを開くだけで、その端末でも同じクイズが出ます（設定は要りません）。</p>
         <input type="text" id="open-link" readonly placeholder="保存先を入れると、ここにURLが出ます">
         <button class="add-btn btn-purple" id="open-link-copy">保存先つきのURLをコピー</button>
     </details>
 </div>
 
-<script src="config.js?v=3.2.0"></script>
-<script src="app.js?v=3.2.0"></script>
+<script src="config.js?v=3.3.0"></script>
+<script src="app.js?v=3.3.0"></script>
 </body>
 </html>

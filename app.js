@@ -9,9 +9,11 @@ const COLOR = {
     green: { name: 'みどり', role: '（からだを まもる）' }
 };
 const emoji = e => 'data:image/svg+xml;utf8,' + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="150" height="150"><text x="50%" y="50%" dominant-baseline="central" text-anchor="middle" font-size="100">${e}</text></svg>`);
+const COLOR_KANJI = { red: '赤', yellow: '黄', green: '緑' };
 const DEFAULT_ICONS = { red: emoji('🥩'), yellow: emoji('🍙'), green: emoji('🥦') };
-const STORE = { cache: 'foodWeek.cache.v1', day: 'foodWeek.day', pw: 'foodWeek.password', api: 'foodWeek.api' };
+const STORE = { cache: 'foodWeek.cache.v1', day: 'foodWeek.day', api: 'foodWeek.api' };
 
+try { localStorage.removeItem('foodWeek.' + 'pass' + 'word'); } catch { /* 前の版で覚えた合言葉を消す */ }
 const store = {
     get(k) { try { return localStorage.getItem(k); } catch { return null; } },
     set(k, v) { try { localStorage.setItem(k, v); } catch { /* 保存できない環境でも遊べる */ } }
@@ -49,8 +51,8 @@ async function api(body) {
 }
 
 async function loadWeek(quiet = false) {
-    if (!apiUrl()) { setStatus('保存先が まだ設定されていません（せってい → 保存先の設定）', true); return; }
-    if (!quiet) setStatus('さいしんの クイズを よみこみ中…');
+    if (!apiUrl()) { setStatus('保存先がまだ設定されていません（設定 → 保存先の設定）', true); return; }
+    if (!quiet) setStatus('最新のクイズを読み込み中…');
     try {
         const r = await api(null);
         if (!r.ok || !r.days) throw new Error('bad');
@@ -59,49 +61,44 @@ async function loadWeek(quiet = false) {
         setStatus('');
         return true;
     } catch {
-        setStatus('保存先に つながりません（ネットワーク、または保存先の公開が「全員」になっていない）。前に よみこんだ クイズで あそべます。', true);
+        setStatus('保存先につながりません（ネットワーク、または保存先の公開が「全員」になっていない）。前に読み込んだクイズで遊べます。', true);
         return false;
     }
 }
 
 const ERR = {
-    password: 'あいことばが ちがいます。',
-    no_password_set: '保存先に あいことば（EDIT_PASSWORD）が まだ設定されていません。',
-    too_large: '登録が多すぎて保存できません。いくつか けしてください。',
-    busy: 'ほかの端末が保存中でした。少し待って、もう一度おしてください。',
-    no_api: '保存先が まだ設定されていません。'
+    too_large: '登録が多すぎて保存できません。いくつか消してください。',
+    busy: '他の端末が保存中でした。少し待って、もう一度押してください。',
+    no_api: '保存先がまだ設定されていません。'
 };
 
 // 変更は「その曜日だけ」を保存。ほかの端末が先に保存していたら上書きせず、最新を読み直す。
 async function saveDay(change) {
     if (saving) return false;
-    const pw = $('teacher-password').value;
-    if (!pw) { alert('先生の あいことばを 入れてください。'); $('teacher-password').focus(); return false; }
     const target = day;
     const draft = JSON.parse(JSON.stringify(week[target].data));
     change(draft);
-    saving = true; setBusy(true); setStatus(dayName(target) + 'を 保存中…');
+    saving = true; setBusy(true); setStatus(dayName(target) + 'を保存中…');
     try {
-        const r = await api({ action: 'save', day: target, password: pw, data: draft, baseUpdatedAt: week[target].updatedAt });
+        const r = await api({ action: 'save', day: target, data: draft, baseUpdatedAt: week[target].updatedAt });
         if (r.ok) {
             week[target] = { data: r.data, updatedAt: r.updatedAt };
             store.set(STORE.cache, JSON.stringify(week));
-            store.set(STORE.pw, pw);
-            setStatus(dayName(target) + 'を 保存しました。');
+            setStatus(dayName(target) + 'を保存しました。');
             return true;
         }
         if (r.error === 'conflict') {
             week[target] = r.current;
             store.set(STORE.cache, JSON.stringify(week));
             setStatus('', false);
-            alert('ほかの端末で ' + dayName(target) + ' が更新されていました。最新を読み込んだので、もう一度 操作してください。');
+            alert('他の端末で' + dayName(target) + 'が更新されていました。最新を読み込んだので、もう一度操作してください。');
             return false;
         }
         setStatus(ERR[r.error] || '保存できませんでした。', true);
         alert(ERR[r.error] || '保存できませんでした。');
         return false;
     } catch (e) {
-        const msg = e.message === 'no_api' ? ERR.no_api : '保存先に つながらず、保存できませんでした。';
+        const msg = e.message === 'no_api' ? ERR.no_api : '保存先につながらず、保存できませんでした。';
         setStatus(msg, true); alert(msg);
         return false;
     } finally {
@@ -141,12 +138,12 @@ function switchTab(t) {
 function applyIcons() { const ic = icons(); ['red', 'yellow', 'green'].forEach(c => $('icon-img-' + c).src = ic[c]); }
 
 function renderSettings() {
-    $('settings-title').textContent = dayName() + 'の クイズ';
+    $('settings-title').textContent = dayName() + 'のクイズ';
     const data = current();
     const i = data.icons || {};
     ['red', 'yellow', 'green'].forEach(c => { const el = $('setting-icon-' + c); if (document.activeElement !== el) el.value = i[c] || ''; });
     const list = $('food-list');
-    if (!data.foods.length) { const p = document.createElement('p'); p.className = 'empty-list'; p.textContent = 'まだ 登録が ありません。'; list.replaceChildren(p); return; }
+    if (!data.foods.length) { const p = document.createElement('p'); p.className = 'empty-list'; p.textContent = 'まだ登録がありません。'; list.replaceChildren(p); return; }
     list.replaceChildren(...data.foods.map((food, index) => {
         const item = document.createElement('div');
         item.className = 'setting-item' + (food.isActive === false ? ' inactive' : '');
@@ -154,14 +151,14 @@ function renderSettings() {
         const cb = document.createElement('input'); cb.type = 'checkbox'; cb.className = 'toggle-checkbox'; cb.checked = food.isActive !== false; cb.title = 'チェックを外すと出題されません';
         cb.onchange = () => saveDay(dd => { dd.foods[index].isActive = cb.checked; });
         const no = document.createElement('span'); no.className = 'item-no'; no.textContent = (index + 1) + '.';
-        const label = document.createElement('span'); label.textContent = `${food.name} (${COLOR[food.color]?.name || ''})`;
+        const label = document.createElement('span'); label.textContent = `${food.name}（${COLOR_KANJI[food.color] || ''}）`;
         main.append(cb, no, label);
         const btns = document.createElement('div'); btns.className = 'item-buttons';
         const mk = (text, cls, fn, disabled) => { const b = document.createElement('button'); b.className = 'action-btn ' + cls; b.textContent = text; b.disabled = !!disabled; b.onclick = fn; return b; };
         btns.append(
             mk('↑', 'btn-updown', () => saveDay(dd => { [dd.foods[index - 1], dd.foods[index]] = [dd.foods[index], dd.foods[index - 1]]; }), index === 0),
             mk('↓', 'btn-updown', () => saveDay(dd => { [dd.foods[index + 1], dd.foods[index]] = [dd.foods[index], dd.foods[index + 1]]; }), index === data.foods.length - 1),
-            mk('けす', 'btn-delete', () => { if (confirm(`「${food.name}」を けしますか？`)) saveDay(dd => { dd.foods.splice(index, 1); }); })
+            mk('削除', 'btn-delete', () => { if (confirm(`「${food.name}」を削除しますか？`)) saveDay(dd => { dd.foods.splice(index, 1); }); })
         );
         item.append(main, btns);
         return item;
@@ -248,32 +245,21 @@ $('tab-settings').onclick = () => switchTab('settings');
 
 $('add-food').onclick = async () => {
     const name = $('new-name').value.trim(), url = $('new-url').value.trim(), color = $('new-color').value;
-    if (!name || !url) { alert('なまえ と URL を いれてください。'); return; }
-    if (!safeUrl(url)) { alert('画像のURLは https:// で はじまる物を いれてください。'); return; }
+    if (!name || !url) { alert('名前と画像のURLを入れてください。'); return; }
+    if (!safeUrl(url)) { alert('画像のURLは https:// で始まる物を入れてください。'); return; }
     if (await saveDay(d => d.foods.push({ name, url, color, isActive: true }))) {
         $('new-name').value = ''; $('new-url').value = '';
-        alert(`${name} を ${dayName()}に ついかしました！`);
+        alert(`${name}を${dayName()}に追加しました。`);
     }
 };
 $('save-icons').onclick = async () => {
     const vals = {};
     for (const c of ['red', 'yellow', 'green']) {
         const v = $('setting-icon-' + c).value.trim();
-        if (v && !safeUrl(v)) { alert('イラストのURLは https:// で はじまる物を いれてください。'); return; }
+        if (v && !safeUrl(v)) { alert('イラストのURLは https:// で始まる物を入れてください。'); return; }
         if (v) vals[c] = v;
     }
-    if (await saveDay(d => { d.icons = vals; })) alert('ボタンのイラストを ほぞんしました！');
-};
-$('teacher-password').value = store.get(STORE.pw) || '';
-$('password-check').onclick = async () => {
-    const pw = $('teacher-password').value, st = $('password-status');
-    if (!pw) { st.textContent = 'あいことばを 入れてください。'; st.className = 'note ng'; return; }
-    st.textContent = 'たしかめ中…'; st.className = 'note';
-    try {
-        const r = await api({ action: 'check', password: pw });
-        if (r.ok) { store.set(STORE.pw, pw); st.textContent = 'OK。この端末で登録できます。'; st.className = 'note ok'; }
-        else { st.textContent = ERR[r.error] || 'たしかめられませんでした。'; st.className = 'note ng'; }
-    } catch (e) { st.textContent = e.message === 'no_api' ? ERR.no_api : '保存先に つながりません。'; st.className = 'note ng'; }
+    if (await saveDay(d => { d.icons = vals; })) alert('ボタンのイラストを保存しました。');
 };
 // ---------- 共有コード（2.0.3 と同じ形：FG1＝圧縮、FG0＝圧縮なし。前の版のコードも読める） ----------
 async function compressText(text) {
@@ -321,7 +307,7 @@ $('share-import').onclick = async () => {
     let obj;
     try { obj = await decodeShare(text); if (!obj || !Array.isArray(obj.foods)) throw new Error('bad'); }
     catch { alert('共有コードを読めませんでした。コピーした文字が途中で切れている可能性があります。'); return; }
-    if (!confirm(`${dayName()}の こんだては、共有コードの内容で上書きされます。よろしいですか？`)) return;
+    if (!confirm(`${dayName()}の献立は、共有コードの内容で上書きされます。よろしいですか？`)) return;
     const foods = obj.foods.map(f => ({ name: String(f.name || ''), url: String(f.url || ''), color: f.color, isActive: f.isActive !== false }));
     const dropped = foods.filter(f => f.url && !safeUrl(f.url)).length;
     if (await saveDay(d => { d.foods = foods; d.icons = obj.icons || {}; })) {
@@ -347,7 +333,7 @@ $('api-save').onclick = () => {
 $('open-link-copy').onclick = async () => {
     const link = $('open-link').value;
     if (!link) { alert('先に保存先のURLを入れてください。'); return; }
-    try { await navigator.clipboard.writeText(link); alert('保存先つきのURLをコピーしました。ほかの端末で開いてください。'); }
+    try { await navigator.clipboard.writeText(link); alert('保存先つきのURLをコピーしました。他の端末で開いてください。'); }
     catch { $('open-link').focus(); $('open-link').select(); alert('自動コピーできませんでした。選択された文字をコピーしてください。'); }
 };
 updateOpenLink();
